@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LG TV No Signal Recreation</title>
+    <!-- Custom font definitions -->
+    <style>
+        @font-face {
+            font-family: 'MuseoSans-Light';
+            src: url('MuseoSans-Light.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'MuseoSans-Medium';
+            src: url('MuseoSans-Medium.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            background-color: black;
+            overflow: hidden; /* Prevent scrollbars when content moves */
+            margin: 0;
+            display: flex; /* Use flexbox to center content initially */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+            text-align: center;
+            user-select: none; /* Prevent text selection */
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE/Edge */
+        }
+
+        #no-signal-container {
+            position: absolute; /* Will be positioned randomly by JavaScript */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px; /* Add some padding around the content */
+            box-sizing: border-box; /* Include padding in width/height calculations */
+        }
+
+        #screensaver-gif {
+            max-width: 150px; /* Adjust GIF size as needed */
+            height: auto;
+            display: block; /* Remove any extra space below the image */
+            margin-bottom: 10px; /* Space between GIF and "NO SIGNAL" text */
+            margin-top: 10px; /* Move GIF down slightly */
+        }
+
+        h1 {
+            font-family: 'MuseoSans-Light', sans-serif; /* Apply MuseoSans-Light */
+            font-size: 1.5em; /* Smaller font for "NO SIGNAL" */
+            margin: 0;
+            white-space: nowrap; /* Prevent "NO SIGNAL" from wrapping to the next line */
+            line-height: 1.2; /* Adjusted for tighter spacing */
+        }
+
+        p {
+            font-family: 'MuseoSans-Light', sans-serif; /* Apply MuseoSans-Light */
+            font-size: 0.95em; /* Smaller font for tips */
+            margin-top: 5px; /* Reduced space between "NO SIGNAL" and tips */
+            line-height: 1.2; /* Adjusted for tighter spacing */
+            opacity: 1; /* Set opacity to 1 for pure white */
+            text-align: center; /* Align text content to the center */
+        }
+
+        /* Basic responsive adjustments */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5em; /* Adjusted smaller for mobile */
+            }
+            p {
+                font-size: 0.8em;
+            }
+            #screensaver-gif {
+                max-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="no-signal-container">
+        <img id="screensaver-gif" src="screensaver12frame.gif" alt="Screensaver icon">
+        <h1>No Signal</h1>
+        <p>
+            Please check the power of the device and cable connection<br> status, or press the [<img src="input.png" width="15">] on your remote to change to another<br> input. <br> For external audio devices, please go to Settings > Sound ><br> Sound Out and change settings to HDMI ARC.
+        </p>
+    </div>
+
+    <script type="module">
+        const container = document.getElementById('no-signal-container');
+
+        function setRandomPosition() {
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+
+            // Get the current rendered dimensions of the container
+            const containerWidth = container.offsetWidth;
+            const containerHeight = container.offsetHeight;
+
+            // Calculate the maximum possible top and left positions
+            // Ensure the element stays fully within the viewport
+            const maxX = vw - containerWidth;
+            const maxY = vh - containerHeight;
+
+            // Generate random positions, ensuring they are not negative
+            // Math.max(0, ...) handles cases where content is larger than viewport
+            const randomX = Math.max(0, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(0, Math.floor(Math.random() * maxY));
+
+            container.style.left = `${randomX}px`;
+            container.style.top = `${randomY}px`;
+        }
+
+        // Set initial position immediately
+        setRandomPosition();
+
+        // Update position every 7 seconds
+        setInterval(setRandomPosition, 7000);
+
+        // Recalculate position on window resize to keep content within bounds
+        window.addEventListener('resize', setRandomPosition);
+    </script>
+</body>
+</html>
