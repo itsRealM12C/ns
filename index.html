@@ -18,21 +18,45 @@
             font-weight: normal;
             font-style: normal;
         }
+        @font-face { 
+            font-family: 'Miso-Regular';
+            src: url('Miso-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
 
         body {
-            background-color: black;
-            overflow: hidden; /* Prevent scrollbars when content moves */
             margin: 0;
-            display: flex; /* Use flexbox to center content initially */
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: white;
-            text-align: center;
+            padding: 0;
+            height: 200vh; /* Extend height for scrolling */
+            overflow: hidden; /* Disable native scrolling */
+            cursor: none; /* Hide the default cursor */
+            position: relative;
+            background-color: black; /* Kept from original body style */
+            color: white; /* Kept from original body style */
+            text-align: center; /* Kept from original body style */
             user-select: none; /* Prevent text selection */
             -webkit-user-select: none; /* Safari */
             -moz-user-select: none; /* Firefox */
             -ms-user-select: none; /* IE/Edge */
+        }
+
+        .custom-cursor {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            /* Background image set by JavaScript based on selected style and hover state */
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: contain;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
+
+        .scroll-container {
+            height: 200vh; /* Allow for scrolling content */
+            overflow: hidden; /* Prevent native scrolling */
         }
 
         #no-signal-container {
@@ -51,6 +75,7 @@
             display: block; /* Remove any extra space below the image */
             margin-bottom: 10px; /* Space between GIF and "NO SIGNAL" text */
             margin-top: 10px; /* Move GIF down slightly */
+            transition: filter 0.3s ease; /* Smooth transition for grayscale effect */
         }
 
         h1 {
@@ -70,6 +95,14 @@
             text-align: center; /* Align text content to the center */
         }
 
+        /* Styles for Hungarian text size */
+        #no-signal-container.hungarian-text-size h1 {
+            font-size: 2em; /* Increase size for Hungarian h1 */
+        }
+        #no-signal-container.hungarian-text-size p {
+            font-size: 1.2em; /* Increase size for Hungarian p */
+        }
+
         /* Basic responsive adjustments */
         @media (max-width: 600px) {
             h1 {
@@ -81,10 +114,223 @@
             #screensaver-gif {
                 max-width: 100px;
             }
+            /* Responsive adjustments for Hungarian text size */
+            @media (max-width: 600px) {
+                #no-signal-container.hungarian-text-size h1 {
+                    font-size: 2em; /* Maintain increased size for mobile Hungarian h1 */
+                }
+                #no-signal-container.hungarian-text-size p {
+                    font-size: 1.1em; /* Adjust increased size for mobile Hungarian p */
+                }
+            }
+        }
+
+        /* Styles for the "Edit No Signal" UI */
+        #settings-panel {
+            position: fixed;
+            top: 10px; /* Positioned from top-left corner - made smaller */
+            left: 10px; /* Positioned from top-left corner - made smaller */
+            transform: none; /* Removed transform for top-left positioning */
+            background-color: rgba(0, 0, 0, 0.9); /* Darker, slightly transparent background */
+            border-radius: 0; /* Changed from 20px */
+            padding: 15px 20px; /* Smaller padding - made smaller */
+            width: auto; /* Allow content to dictate width */
+            max-width: 90%; /* Max width relative to viewport */
+            padding-right: 40px; /* Added right padding for better look on wide screens */
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            color: white;
+            box-sizing: border-box;
+            font-family: 'MuseoSans-Light', sans-serif;
+            outline: none; /* Remove default focus outline */
+            min-width: 280px; /* Ensure panel is not too small - made smaller */
+        }
+
+        .settings-header {
+            font-family: 'MuseoSans-Medium', sans-serif;
+            font-size: 1.5em; /* Smaller header font - made smaller */
+            margin-bottom: 15px; /* Reduced margin - made smaller */
+            text-align: left; /* Header aligned left */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Subtle separator */
+            padding-bottom: 10px; /* made smaller */
+        }
+
+        .settings-content-wrapper { /* New wrapper for horizontal sections */
+            display: flex;
+            flex-wrap: wrap; /* Allows sections to wrap to the next line */
+            justify-content: flex-start; /* Aligns items to the start */
+            gap: 20px; /* Space between flex items - made smaller */
+            margin-bottom: 20px; /* Space before action buttons */
+        }
+
+        .settings-section {
+            flex-basis: 220px; /* Each section tries to be at least 220px wide */
+            flex-grow: 1; /* Allows sections to grow and fill available space */
+            margin-bottom: 0; /* Removed margin-bottom as gap handles spacing */
+        }
+
+        .section-title {
+            font-family: 'MuseoSans-Medium', sans-serif;
+            font-size: 1em; /* Smaller section title font - made smaller */
+            margin-bottom: 10px; /* made smaller */
+            text-align: left;
+            color: rgba(255, 255, 255, 0.7); /* Slightly dimmed title */
+        }
+
+        .options-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .options-list .option {
+            font-size: 0.9em; /* Smaller option font - made smaller */
+            padding: 8px 12px; /* Smaller padding - made smaller */
+            margin-bottom: 6px; /* Space between options - made smaller */
+            border-radius: 0; /* Changed from 8px */
+            cursor: pointer;
+            text-align: left; /* Options text aligned left */
+            transition: none; /* Removed transition */
+            background-color: transparent; /* Ensure default is transparent */
+            color: white; /* Default text color */
+            outline: none; /* Remove default browser focus outline */
+            box-shadow: none; /* Ensure no box-shadow from browser focus */
+        }
+
+        /* Primary highlight for the currently focused item (navigated by arrow keys) */
+        .options-list .option.focused,
+        .settings-actions button.focused {
+            background-color: #de187e; /* Pink background for focus */
+            color: white; /* White text on pink background */
+            outline: none; /* Ensure no blue outline */
+            box-shadow: none; /* Ensure no box-shadow */
+        }
+
+        /* Style for selected options in the lists (Language, Version, Cursor, Custom Message) */
+        /* These should *not* have a pink background unless they are also focused. */
+        /* Only change text color or add an icon to indicate selection when not focused. */
+        .options-list .option.selected {
+            background-color: transparent; /* Explicitly ensure no background is applied by .selected */
+            color: white; /* Changed from #ffb3e6 to white */
+        }
+
+        /* The most prominent style: item is selected (chosen) AND currently focused (navigated) */
+        /* This rule has higher specificity and will override .focused and .selected individually */
+        .options-list .option.selected.focused,
+        .settings-actions button.selected.focused {
+            background-color: #c4156b; /* Darker pink for selected AND focused */
+            color: white;
+            outline: none; /* Ensure no blue outline */
+            box-shadow: none; /* Ensure no box-shadow */
+        }
+
+        .settings-actions {
+            margin-top: 30px;
+            text-align: right; /* Align action buttons to the right */
+        }
+
+        .settings-actions button {
+            font-family: 'MuseoSans-Medium', sans-serif;
+            font-size: 0.9em; /* Smaller button font - made smaller */
+            padding: 8px 15px; /* Smaller padding - made smaller */
+            border: none;
+            border-radius: 0; /* Changed from 8px */
+            background-color: rgba(255, 255, 255, 0.1); /* Similar to focused options */
+            color: white;
+            cursor: pointer;
+            transition: none; /* Removed transition */
+            margin-left: 8px; /* Space between buttons - made smaller */
+            outline: none; /* Remove default browser focus outline */
+            box-shadow: none; /* Ensure no box-shadow from browser focus */
+        }
+
+        /* New styles for checkbox within options-list */
+        .options-list .option input[type="checkbox"] {
+            margin-left: 10px; /* Space between label and checkbox */
+            vertical-align: middle;
+            width: 18px; /* Standardize size */
+            height: 18px;
+            accent-color: #de187e; /* Pink accent color for checkbox */
+            outline: none; /* Remove outline for checkbox */
+            box-shadow: none; /* Remove box-shadow for checkbox */
+        }
+
+        .options-list .option label {
+            cursor: pointer;
+        }
+
+        /* New styles for contenteditable elements */
+        #no-signal-container h1.editable-active,
+        #no-signal-container p.editable-active {
+            outline: none; /* Remove default outline */
+            padding: 0; /* Remove padding */
+            margin: 0; /* Remove margin adjustment */
+            cursor: text; /* Change cursor to text when editable */
+        }
+
+        /* Explicitly target focus and active states for all interactive elements in the settings panel */
+        .options-list .option:focus,
+        .options-list .option:active,
+        .settings-actions button:focus,
+        .settings-actions button:active,
+        #edit-anything-checkbox:focus,
+        #edit-anything-checkbox:active,
+        #fullscreen-checkbox:focus,
+        #fullscreen-checkbox:active {
+            outline: none;
+            box-shadow: none;
+        }
+
+        /* NEW: Styles for HDMI Overlay */
+        #hdmi-overlay {
+            position: fixed;
+            top: 10px; /* Moved closer to the top edge */
+            left: 20px; /* Adjusted to move slightly right */
+            font-size: 3.2em; /* Made text slightly smaller */
+            color: white;
+            background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+            padding: 10px 15px;
+            border-radius: 5px;
+            z-index: 9998; /* Below cursor but above other content */
+            display: flex; /* Changed to flex to align content */
+            align-items: flex-start; /* Vertically center content */
+            gap: 5px; /* Space between elements */
+            white-space: nowrap; /* Prevent text wrapping */
+        }
+
+        #hdmi-overlay #main-hdmi-text {
+            font-family: 'Miso-Regular', sans-serif;
+            font-size: 1em; /* Inherit 3.2em from parent #hdmi-overlay */
+        }
+
+        #hdmi-overlay .vertical-line {
+            width: 4px;
+            background-color: gray;
+            height: 0.4em; /* Height relative to the parent's font-size (3.2em) */
+            flex-shrink: 0; /* Prevent the line from shrinking */
+            
+        }
+
+        #hdmi-overlay #secondary-hdmi-text {
+            font-family: 'MuseoSans-Medium', sans-serif;
+            font-size: 0.4em; /* Slightly smaller than main text, relative to parent's 3.2em */
+            white-space: nowrap; /* Prevent text wrapping */
         }
     </style>
+    <script type="importmap">
+        {
+            "imports": {}
+        }
+    </script>
 </head>
 <body>
+    <div class="custom-cursor" id="cursor"></div>
+    <div id="hdmi-overlay">
+        <span id="main-hdmi-text">HDMI 1</span>
+        <span class="vertical-line"></span>
+        <span id="secondary-hdmi-text">HDMI 1</span>
+    </div> 
+
     <div id="no-signal-container">
         <img id="screensaver-gif" src="screensaver12frame.gif" alt="Screensaver icon">
         <h1>No Signal</h1>
@@ -93,39 +339,1284 @@
         </p>
     </div>
 
+    <div id="settings-panel">
+        <div class="settings-header">Edit No Signal</div>
+        <div class="settings-content-wrapper"> 
+            <div class="settings-section">
+                <div class="section-title">Language</div>
+                <ul id="language-options" class="options-list">
+                    <li data-value="English" class="option selected">English</li>
+                    <li data-value="Magyar" class="option">Magyar</li>
+                    <li data-value="Русский" class="option">Русский</li>
+                </ul>
+            </div>
+            <div class="settings-section">
+                <div class="section-title">No Signal Version</div>
+                <ul id="version-options" class="options-list">
+                </ul>
+            </div>
+            <div class="settings-section">
+                <div class="section-title">Cursor Style</div>
+                <ul id="cursor-options" class="options-list">
+                </ul>
+            </div>
+            <div class="settings-section">
+                <div class="section-title">Custom Message</div>
+                <ul id="custom-message-options" class="options-list">
+                </ul>
+            </div>
+            <div class="settings-section">
+                <div class="section-title">No Signal Layout</div>
+                <ul id="layout-options" class="options-list">
+                </ul>
+            </div>
+            <div class="settings-section">
+                <div class="section-title">Editing</div>
+                <ul id="editing-options" class="options-list">
+                    <li data-type="editing-toggle" class="option">
+                        <label for="edit-anything-checkbox">Edit Anything</label>
+                        <input type="checkbox" id="edit-anything-checkbox">
+                    </li>
+                </ul>
+            </div>
+            <div class="settings-section">
+                <div class="section-title">Display</div>
+                <ul id="display-options" class="options-list">
+                    <li data-type="display-toggle" class="option">
+                        <label for="fullscreen-checkbox">Full Screen</label>
+                        <input type="checkbox" id="fullscreen-checkbox">
+                    </li>
+                </ul>
+            </div>
+        </div> 
+        <div class="settings-actions">
+            <button id="reset-settings" class="option">Reset to Defaults</button>
+            <button id="close-settings" class="option">Close</button>
+        </div>
+    </div>
+
+    <div class="scroll-container" id="scrollContainer">
+    </div>
+
     <script type="module">
-        const container = document.getElementById('no-signal-container');
+        var container = document.getElementById('no-signal-container');
+        const cursor = document.getElementById('cursor'); 
+        const scrollContainer = document.getElementById('scrollContainer'); 
+        const hdmiOverlay = document.getElementById('hdmi-overlay'); 
+        let lastMouseEventTime = 0; // Tracks the last time a mouse event occurred
 
         function setRandomPosition() {
-            const vw = window.innerWidth;
-            const vh = window.innerHeight;
+            var vw = window.innerWidth;
+            var vh = window.innerHeight;
 
-            // Get the current rendered dimensions of the container
-            const containerWidth = container.offsetWidth;
-            const containerHeight = container.offsetHeight;
+            var containerWidth = container.offsetWidth;
+            var containerHeight = container.offsetHeight;
 
-            // Calculate the maximum possible top and left positions
-            // Ensure the element stays fully within the viewport
-            const maxX = vw - containerWidth;
-            const maxY = vh - containerHeight;
+            var maxX = vw - containerWidth;
+            var maxY = vh - containerHeight;
 
-            // Generate random positions, ensuring they are not negative
-            // Math.max(0, ...) handles cases where content is larger than viewport
-            const randomX = Math.max(0, Math.floor(Math.random() * maxX));
-            const randomY = Math.max(0, Math.floor(Math.random() * maxY));
+            var randomX = Math.max(0, Math.floor(Math.random() * maxX));
+            var randomY = Math.max(0, Math.floor(Math.random() * maxY));
 
-            container.style.left = `${randomX}px`;
-            container.style.top = `${randomY}px`;
+            container.style.left = randomX + 'px';
+            container.style.top = randomY + 'px';
         }
 
-        // Set initial position immediately
-        setRandomPosition();
+        let positionIntervalId = null;
 
-        // Update position every 7 seconds
-        setInterval(setRandomPosition, 7000);
+        positionIntervalId = setInterval(setRandomPosition, 7000);
 
-        // Recalculate position on window resize to keep content within bounds
         window.addEventListener('resize', setRandomPosition);
+
+        const settingsPanel = document.getElementById('settings-panel');
+        const languageOptionsList = document.getElementById('language-options');
+        const versionOptionsList = document.getElementById('version-options');
+        const cursorOptionsList = document.getElementById('cursor-options'); 
+        const customMessageOptionsList = document.getElementById('custom-message-options'); 
+        const layoutOptionsList = document.getElementById('layout-options'); 
+        const editingOptionsList = document.getElementById('editing-options'); 
+        const editAnythingCheckbox = document.getElementById('edit-anything-checkbox'); 
+        const displayOptionsList = document.getElementById('display-options'); 
+        const fullscreenCheckbox = document.getElementById('fullscreen-checkbox'); 
+        const noSignalH1 = document.querySelector('#no-signal-container h1'); 
+        const noSignalP = document.querySelector('#no-signal-container p'); 
+        const closeSettingsButton = document.getElementById('close-settings');
+        const resetSettingsButton = document.getElementById('reset-settings'); 
+
+        let isSettingsOpen = false;
+        let selectableElements = [];
+        let focusedElementIndex = -1; 
+
+        let settingsSections = []; 
+        let currentSectionIndex = -1; 
+
+        let isEditAnythingEnabled = false;
+        let isEditingText = false;
+        let h1_editable_content = null;
+        let p_editable_content = null;
+
+        const noSignalVersions = [
+            {
+                name: 'No Signal (Default)',
+                h1_translations: {
+                    English: 'No Signal',
+                    Magyar: 'Nincs jel',
+                    Русский: 'Нет Сигнала'
+                },
+                p_translations: {
+                    English: 'Please check the power of the device and cable connection<br> status, or press the [<img src="input.png" width="15">] on your remote to change to another<br> input. <br> For external audio devices, please go to Settings > Sound ><br> Sound Out and change settings to HDMI ARC.',
+                    Magyar: 'Kérjük, ellenőrizze az eszköz tápellátását illetve, <br>hogy megfelelően csatlakozik-e a készülékhez, <br>vagy nyomja meg a(z) [<img src="input.png" width="15">] gombot a <br>távirányítón egy másik bemenet választásához. <br>Külső audioeszközök esetén lépjen a <br>Beállítások > Hang > Hangkimenet lehetőségre, <br>és módosítsa a beállítást HDMI ARC-re.',
+                    Русский: 'Проверьте питание устройства и состояние кабельного<br> подключения, или нажмите [<img src="input.png" width="15">] на пульте для переключения на другой<br> вход. <br> Для внешних аудиоустройств перейдите в Настройки > Звук ><br> Звуковой выход и измените настройки на HDMI ARC.'
+                },
+                isDefault: true,
+                default_gifEffect: { 
+                    grayscale: false,
+                    movementInterval: 7000
+                }
+            },
+            {
+                name: 'Old',
+                h1_translations: {
+                    English: 'No Signal',
+                    Magyar: 'Nincs jel',
+                    Русский: 'Нет Сигнала'
+                },
+                p_translations: {
+                    English: 'Please check the input connection',
+                    Magyar: 'Kérjük, ellenőrizze a bemeneti csatlakozást',
+                    Русский: 'Проверьте входное подключение'
+                },
+                default_gifEffect: {
+                    grayscale: false,
+                    movementInterval: 7000
+                }
+            },
+            {
+                name: 'No Live TV Channels',
+                h1_translations: {
+                    English: 'Not Programmed',
+                    Magyar: 'Nincs programozva',
+                    Русский: 'Не запрограммировано'
+                },
+                p_translations: {
+                    English: '',
+                    Magyar: '',
+                    Русский: ''
+                },
+                default_gifEffect: {
+                    grayscale: false,
+                    movementInterval: 7000
+                }
+            },
+            {
+                name: 'No Signal 2',
+                h1_translations: {
+                    English: 'No Signal',
+                    Magyar: 'Nincs jel',
+                    Русский: 'Нет Сигнала'
+                },
+                p_translations: {
+                    English: 'No Signal<br>No signal has been found yet. Please check the network connection.',
+                    Magyar: 'Nincs Jel<br>Még nem található jel. Kérjük, ellenőrizze a hálózati kapcsolatot.',
+                    Русский: 'Нет Сигнала<br>Сигнал пока не найден. Проверьте сетевое подключение.'
+                },
+                default_gifEffect: {
+                    grayscale: false,
+                    movementInterval: 7000
+                }
+            },
+            {
+                name: 'No Signal 3',
+                h1_translations: {
+                    English: 'No Signal',
+                    Magyar: 'Nincs jel',
+                    Русский: 'Нет Сигнала'
+                },
+                p_translations: {
+                    English: 'Please check the power of the device and cable connection<br> status, or press the [<img src="input.png" width="15">] on your remote to change to another<br> input.',
+                    Magyar: 'Kérjük, ellenőrizze az eszköz tápellátását illetve, <br>hogy megfelelően csatlakozik-e a készülékhez, <br>vagy nyomja meg a(z) [<img src="input.png" width="16">] gombot a <br>távirányítón egy másik bemenet választásához.',
+                    Русский: 'Проверьте питание устройства и состояние кабельного<br> подключения, или нажмите [<img src="input.png" width="15">] на пульте для переключения на другой<br> вход.'
+                },
+                default_gifEffect: {
+                    grayscale: false,
+                    movementInterval: 7000
+                }
+            },
+            {
+                name: 'Invaild Service',
+                h1_translations: {
+                    English: 'Invaild Service',
+                    Magyar: 'Érvénytelen szolgáltatás',
+                    Русский: 'Недействительная служба'
+                },
+                p_translations: {
+                    English: 'No image is being displayed because of a signal problem or invalid programme information from broadcasting provider.',
+                    Magyar: 'Nincs kép megjelenítve jelprobléma vagy a műsorszolgáltatótól származó érvénytelen programinformáció miatt.',
+                    Русский: 'Изображение не отображается из-за проблемы с сигналом или неверной информации о программе от провайдера вещания.'
+                },
+                default_gifEffect: {
+                    grayscale: false,
+                    movementInterval: 7000
+                }
+            },
+            {
+                name: 'No CI Module',
+                h1_translations: {
+                    English: 'No CI Module',
+                    Magyar: 'Nincs CI Modul',
+                    Русский: 'Нет модуля CI'
+                },
+                p_translations: {
+                    English: '',
+                    Magyar: '',
+                    Русский: ''
+                },
+                default_gifEffect: {
+                    grayscale: false,
+                    movementInterval: 7000
+                }
+            },
+            {
+                name: 'No Signal 4',
+                h1_translations: {
+                    English: 'No Signal',
+                    Magyar: 'Nincs jel',
+                    Русский: 'Нет Сигнала'
+                },
+                p_translations: {
+                    English: '',
+                    Magyar: '',
+                    Русский: ''
+                },
+                default_gifEffect: {
+                    grayscale: false,
+                    movementInterval: 7000
+                }
+            },
+            {
+                name: 'Input Locked',
+                h1_translations: {
+                    English: 'Input Locked',
+                    Magyar: 'Bemenet Zárolva',
+                    Русский: 'Вход Заблокирован'
+                },
+                p_translations: {
+                    English: 'Press OK button for unlocking the screen.',
+                    Magyar: 'A képernyő zárolásának feloldásához nyomja meg az OK gombot.',
+                    Русский: 'Нажмите кнопку OK для разблокировки экрана.'
+                },
+                default_gifEffect: {
+                    grayscale: false,
+                    movementInterval: 7000
+                }
+            }
+        ];
+
+        let cursorVisualState = 'idle'; 
+        let cursorAnimationPlaying = 'none'; 
+        let cursorGifTimeout = null; 
+        let cursorIdleTimeout = null; 
+        let isMouseCurrentlyDown = false; 
+
+        let scrollPosition = 0; 
+        let isScrolling = false; 
+        let scrollStopTimeout = null; 
+
+        const cursorStyles = [
+            {
+                name: '3.0 (Default)',
+                isDefault: true,
+                idleImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/cursorTypeAszLstN.png',
+                clickedImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/cursorTypeAszLstP3.png',
+                hoverImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/cursorTypeAszLstN.png',
+                scrollUpImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/scrollUp.gif',
+                scrollDownImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/scrollDown.gif',
+                scrollDuration: 500
+            },
+            {
+                name: 'Netcast',
+                idleImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/c_down_s.png',
+                hoverImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/nrcu_cursor_hover.png',
+                clickedImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/c_down_s.png',
+                scrollUpImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/c_down_s.png',
+                scrollDownImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/c_down_s.png',
+                scrollDuration: 500
+            },
+            {
+                name: '7.0',
+                idleImageUrl: 'idl3.png',
+                hoverImageUrl: 'hover.png',
+                clickedImageUrl: 'click.png',
+                scrollUpImageUrl: 'idl3.png',
+                scrollDownImageUrl: 'idl3.png',
+                scrollDuration: 500
+            },
+            {
+                name: 'Beanbird',
+                idleImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/Screenshot_20250716_190454-removebg-preview.png',
+                hoverImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/Screenshot_20250716_190454-removebg-preview.png', 
+                appearingGifUrl: 'https://itsrealm12c.github.io/lgweboscursor/appearing.gif',
+                holdingGifUrl: 'https://itsrealm12c.github.io/lgweboscursor/holding.gif',
+                holdingStaticImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/Screenshot_20250716_214059-removebg-preview.png',
+                releaseGifUrl: 'https://itsrealm12c.github.io/lgweboscursor/release.gif',
+                scrollUpImageUrl: 'https://itsrealm12c.github.io/lgweboscursor/5crollup.gif',
+                scrollDownImageUrl: 'https://itsrealm12c.github.io/lgweboscursor/5crolldown.gif',
+                disappearGifUrl: 'https://itsrealm12c.github.io/lgweboscursor/disappear.gif',
+                appearingDuration: 300,
+                holdingDuration: 500,
+                releaseDuration: 300,
+                scrollDuration: 500, 
+                disappearDuration: 1000, 
+                idleDisappearDelay: 3000 
+            },
+            {
+                name: 'Latest Netcast',
+                idleImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/ncc.png',
+                hoverImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/ncc.png', 
+                clickedImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/ncc.png', 
+                scrollUpImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/ncc.png', 
+                scrollDownImageUrl: 'https://raw.githubusercontent.com/itsRealM12C/lgweboscursor/refs/heads/main/ncc.png', 
+                scrollDuration: 500
+            }
+        ];
+
+        const customMessages = [
+            {
+                name: 'Default Message',
+                h1_translations: {
+                    English: 'No Signal',
+                    Magyar: 'Nincs jel',
+                    Русский: 'Нет Сигнала'
+                },
+                p_translations: {
+                    English: 'This is the default message.<br>You can customize more text options here.',
+                    Magyar: 'Ez az alapértelmezett üzenet.<br>Itt további szövegbeállításokat szabhat testre.',
+                    Русский: 'Это сообщение по умолчанию.<br>Здесь вы можете настроить дополнительные текстовые параметры.'
+                },
+                default_gifEffect: { 
+                    grayscale: false,
+                    movementInterval: 7000
+                }
+            },
+            {
+                name: 'Concise Message',
+                h1_translations: {
+                    English: 'Input Missing',
+                    Magyar: 'Bemenet Hiányzik',
+                    Русский: 'Вход Отсутствует'
+                },
+                p_translations: {
+                    English: 'Verify all connections and power status of your device.',
+                    Magyar: 'Ellenőrizze az összes csatlakozást és az eszköz áramellátását.',
+                    Русский: 'Проверьте все подключения и состояние питания вашего устройства.'
+                },
+                default_gifEffect: {
+                    grayscale: false,
+                    movementInterval: 7000
+                }
+            },
+            {
+                name: 'Gaming Tips',
+                h1_translations: {
+                    English: 'Game Console Off',
+                    Magyar: 'Játék Konzol Kikapcsolva',
+                    Русский: 'Игровая Конzол Кикапсолва'
+                },
+                p_translations: {
+                    English: 'Power on your gaming console. For best experience, enable Game Mode in settings.',
+                    Magyar: 'Kapcsolja be játékkonzolját. A legjobb élmény érdekében engedélyezze a Játék módot a beállításokban.',
+                    Русский: 'Включите игровую консоль. Для лучшего опыта включите Игровой режим в настройках.'
+                },
+                default_gifEffect: {
+                    grayscale: false,
+                    movementInterval: 7000
+                }
+            }
+        ];
+
+        const noSignalLayouts = [
+            {
+                name: 'Default',
+                isDefault: true,
+                gifEffect: { grayscale: false, movementInterval: 7000 }
+            },
+            {
+                name: 'Newer version, but with old layout',
+                gifEffect: { grayscale: true, movementInterval: 3000 } 
+            }
+        ];
+
+        const initialDefaultState = {
+            language: 'English',
+            noSignalVersionName: noSignalVersions.find(v => v.isDefault).name,
+            cursorStyleName: cursorStyles.find(s => s.isDefault).name,
+            customMessageName: null,
+            noSignalLayoutName: noSignalLayouts.find(l => l.isDefault).name
+        };
+
+        let currentLanguage = initialDefaultState.language;
+        let currentNoSignalVersionName = initialDefaultState.noSignalVersionName;
+        let currentCursorStyleName = initialDefaultState.cursorStyleName;
+        let currentCustomMessageName = initialDefaultState.customMessageName;
+        let currentNoSignalLayoutName = initialDefaultState.noSignalLayoutName;
+
+        let hdmiOverlayHideTimeout = null;
+        const hdmiOverlayDisplayDuration = 3000; // 3 seconds
+        let hdmiOverlayIsActuallyVisible = false; // Tracks current DOM display state
+        let mouseDownCoords = { x: 0, y: 0 };
+        let isDragInProgress = false;
+        const DRAG_THRESHOLD = 5; // pixels
+
+        function showHDMIOverlay() {
+            if (isSettingsOpen) { // Don't show if settings are open
+                return;
+            }
+            hdmiOverlay.style.display = 'flex';
+            hdmiOverlayIsActuallyVisible = true;
+            clearTimeout(hdmiOverlayHideTimeout);
+            hdmiOverlayHideTimeout = setTimeout(hideHDMIOverlay, hdmiOverlayDisplayDuration);
+        }
+
+        function hideHDMIOverlay() {
+            hdmiOverlay.style.display = 'none';
+            hdmiOverlayIsActuallyVisible = false;
+            clearTimeout(hdmiOverlayHideTimeout);
+        }
+
+        function getEffectiveContentSource() {
+            if (currentCustomMessageName !== null) {
+                return customMessages.find(m => m.name === currentCustomMessageName);
+            }
+            return noSignalVersions.find(v => v.name === currentNoSignalVersionName);
+        }
+
+        function getEffectiveH1Text() {
+            if (isEditAnythingEnabled && h1_editable_content !== null) {
+                return h1_editable_content;
+            }
+            const source = getEffectiveContentSource();
+            return source.h1_translations[currentLanguage] || source.h1_translations['English'] || '';
+        }
+
+        function getEffectivePText() {
+            if (isEditAnythingEnabled && p_editable_content !== null) {
+                return p_editable_content;
+            }
+            const source = getEffectiveContentSource();
+            return source.p_translations[currentLanguage] || source.p_translations['English'] || '';
+        }
+
+        function getEffectiveGifEffect() {
+            const contentSource = getEffectiveContentSource();
+            const layout = noSignalLayouts.find(l => l.name === currentNoSignalLayoutName);
+
+            let combinedEffect = { ...contentSource.default_gifEffect };
+
+            if (layout && layout.gifEffect) {
+                combinedEffect = { ...combinedEffect, ...layout.gifEffect };
+            }
+            return combinedEffect;
+        }
+
+        function applyGifEffects(effect) {
+            const gif = document.getElementById('screensaver-gif');
+
+            gif.style.filter = effect.grayscale ? 'grayscale(1)' : 'none';
+
+            if (positionIntervalId) {
+                clearInterval(positionIntervalId);
+            }
+            positionIntervalId = setInterval(setRandomPosition, effect.movementInterval);
+        }
+
+        function updateMainNoSignalDisplay() {
+            if (!isEditingText) {
+                noSignalH1.innerHTML = getEffectiveH1Text();
+                noSignalP.innerHTML = getEffectivePText();
+            }
+            applyGifEffects(getEffectiveGifEffect()); 
+
+            const noSignalContainer = document.getElementById('no-signal-container');
+            if (currentLanguage === 'Magyar') {
+                noSignalContainer.classList.add('hungarian-text-size');
+            } else {
+                noSignalContainer.classList.remove('hungarian-text-size');
+            }
+        }
+
+        function applyCursorVisual() {
+            const style = cursorStyles.find(s => s.name === currentCursorStyleName);
+            if (!style) {
+                cursor.style.backgroundImage = 'none';
+                cursorVisualState = 'hidden'; 
+                return;
+            }
+
+            let imageUrl = '';
+            let gifDuration = 0; 
+
+            if (cursorAnimationPlaying !== 'none') {
+                if (cursorAnimationPlaying === 'scroll_up' && style.scrollUpImageUrl) {
+                    imageUrl = style.scrollUpImageUrl;
+                    gifDuration = style.scrollDuration || 500;
+                } else if (cursorAnimationPlaying === 'scroll_down' && style.scrollDownImageUrl) {
+                    imageUrl = style.scrollDownImageUrl;
+                    gifDuration = style.scrollDuration || 500;
+                } else if (currentCursorStyleName === 'Beanbird') { 
+                    if (cursorAnimationPlaying === 'appearing' && style.appearingGifUrl) {
+                        imageUrl = style.appearingGifUrl;
+                        gifDuration = style.appearingDuration || 300;
+                    } else if (cursorAnimationPlaying === 'holding' && style.holdingGifUrl) {
+                        imageUrl = style.holdingGifUrl;
+                        gifDuration = style.holdingDuration || 500;
+                    } else if (cursorAnimationPlaying === 'releasing' && style.releaseGifUrl) {
+                        imageUrl = style.releaseGifUrl;
+                        gifDuration = style.releaseDuration || 300;
+                    } else if (cursorAnimationPlaying === 'disappearing' && style.disappearGifUrl) {
+                        imageUrl = style.disappearGifUrl;
+                        gifDuration = style.disappearDuration || 1000;
+                    }
+                }
+            }
+
+            if (!imageUrl) {
+                cursorAnimationPlaying = 'none'; 
+                
+                if (cursorVisualState === 'clicked') {
+                    if (currentCursorStyleName === 'Beanbird' && style.holdingStaticImageUrl && isMouseCurrentlyDown) {
+                        imageUrl = style.holdingStaticImageUrl;
+                    } else if (style.clickedImageUrl) {
+                        imageUrl = style.clickedImageUrl;
+                    }
+                } else if (cursorVisualState === 'hover') {
+                    imageUrl = style.hoverImageUrl;
+                } else if (cursorVisualState === 'hidden') {
+                    imageUrl = ''; 
+                }
+                
+                if (!imageUrl && style.idleImageUrl) {
+                    imageUrl = style.idleImageUrl;
+                    if (cursorVisualState !== 'hidden' && cursorVisualState !== 'idle') { 
+                        cursorVisualState = 'idle'; 
+                    }
+                }
+            }
+            
+            cursor.style.backgroundImage = imageUrl ? `url('${imageUrl}')` : 'none';
+
+            clearTimeout(cursorGifTimeout);
+            if (imageUrl && imageUrl.endsWith('.gif')) { 
+                cursorGifTimeout = setTimeout(() => {
+                    if (currentCursorStyleName === 'Beanbird') {
+                        if (cursorAnimationPlaying === 'holding' && isMouseCurrentlyDown) {
+                            cursorVisualState = 'clicked'; 
+                        } else if (cursorAnimationPlaying === 'disappearing') {
+                            cursorVisualState = 'hidden'; 
+                        } else {
+                            const targetElement = document.elementFromPoint(cursor.offsetLeft, cursor.offsetTop);
+                            cursorVisualState = (targetElement && targetElement.closest('.option, button')) ? 'hover' : 'idle';
+                        }
+                    } else {
+                        const targetElement = document.elementFromPoint(cursor.offsetLeft, cursor.offsetTop);
+                        cursorVisualState = (targetElement && targetElement.closest('.option, button')) ? 'hover' : 'idle';
+                    }
+                    cursorAnimationPlaying = 'none'; 
+                    applyCursorVisual(); 
+                }, gifDuration);
+            }
+        }
+
+        function resetCursorIdleTimeout() {
+            clearTimeout(cursorIdleTimeout);
+            if (currentCursorStyleName === 'Beanbird') {
+                const style = cursorStyles.find(s => s.name === 'Beanbird');
+                cursorIdleTimeout = setTimeout(() => {
+                    if (cursorAnimationPlaying === 'none' && cursorVisualState !== 'hidden' && !isMouseCurrentlyDown) {
+                        cursorAnimationPlaying = 'disappearing';
+                        applyCursorVisual();
+                    }
+                }, style.idleDisappearDelay || 3000);
+            }
+        }
+
+        function activateCursorOnInteraction(e) {
+            if (currentCursorStyleName === 'Beanbird' && cursorVisualState === 'hidden') {
+                cursorAnimationPlaying = 'appearing';
+                cursorVisualState = 'idle'; 
+                applyCursorVisual();
+            }
+            resetCursorIdleTimeout(); 
+        }
+
+        function applyContentEditableState() {
+            noSignalH1.contentEditable = isEditAnythingEnabled;
+            noSignalP.contentEditable = isEditAnythingEnabled;
+
+            noSignalH1.removeEventListener('focusin', handleFocusInEditable);
+            noSignalH1.removeEventListener('focusout', handleFocusOutEditable);
+            noSignalP.removeEventListener('focusin', handleFocusInEditable);
+            noSignalP.removeEventListener('focusout', handleFocusOutEditable);
+
+            if (isEditAnythingEnabled) {
+                noSignalH1.classList.add('editable-active');
+                noSignalP.classList.add('editable-active');
+                noSignalH1.addEventListener('blur', saveEditedContent);
+                noSignalP.addEventListener('blur', saveEditedContent);
+
+                noSignalH1.addEventListener('focusin', handleFocusInEditable);
+                noSignalH1.addEventListener('focusout', handleFocusOutEditable);
+                noSignalP.addEventListener('focusin', handleFocusInEditable);
+                noSignalP.addEventListener('focusout', handleFocusOutEditable);
+
+            } else {
+                noSignalH1.classList.remove('editable-active');
+                noSignalP.classList.remove('editable-active');
+                noSignalH1.removeEventListener('blur', saveEditedContent);
+                noSignalP.removeEventListener('blur', saveEditedContent);
+                isEditingText = false; 
+            }
+        }
+
+        function handleFocusInEditable() {
+            isEditingText = true;
+        }
+
+        function handleFocusOutEditable() {
+            setTimeout(() => {
+                if (document.activeElement !== noSignalH1 && document.activeElement !== noSignalP) {
+                    isEditingText = false;
+                }
+            }, 50);
+        }
+
+        function saveEditedContent(event) {
+            if (event.target === noSignalH1) {
+                h1_editable_content = noSignalH1.innerHTML;
+            } else if (event.target === noSignalP) {
+                p_editable_content = noSignalP.innerHTML;
+            }
+        }
+
+        function toggleFullscreen(enable) {
+            if (enable) {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.documentElement.mozRequestFullScreen) { /* Firefox */
+                    document.documentElement.mozRequestFullScreen();
+                } else if (document.documentElement.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                    document.documentElement.webkitRequestFullscreen();
+                } else if (document.documentElement.msRequestFullscreen) { /* IE/Edge */
+                    document.documentElement.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) { /* Firefox */
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) { /* Chrome, Safari & Opera */
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE/Edge */
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (fullscreenCheckbox) {
+                fullscreenCheckbox.checked = !!document.fullscreenElement;
+                const parentOption = fullscreenCheckbox.closest('.option');
+                if (parentOption) {
+                    if (fullscreenCheckbox.checked) {
+                        parentOption.classList.add('selected');
+                    } else {
+                        parentOption.classList.remove('selected');
+                    }
+                }
+            }
+        });
+
+        function populateSettingsOptions() {
+            Array.from(languageOptionsList.children).forEach(el => {
+                el.classList.remove('selected'); 
+                if (el.dataset.value === currentLanguage) {
+                    el.classList.add('selected');
+                }
+            });
+
+            versionOptionsList.innerHTML = ''; 
+            noSignalVersions.forEach(version => {
+                const li = document.createElement('li');
+                li.classList.add('option');
+                li.dataset.type = 'version';
+                li.dataset.value = version.name;
+                li.textContent = version.name;
+                if (version.name === currentNoSignalVersionName && currentCustomMessageName === null) { 
+                    li.classList.add('selected');
+                }
+                versionOptionsList.appendChild(li);
+            });
+
+            cursorOptionsList.innerHTML = '';
+            cursorStyles.forEach(style => {
+                const li = document.createElement('li');
+                li.classList.add('option');
+                li.dataset.type = 'cursor';
+                li.dataset.value = style.name;
+                li.textContent = style.name;
+                if (style.name === currentCursorStyleName) {
+                    li.classList.add('selected');
+                }
+                cursorOptionsList.appendChild(li);
+            });
+
+            customMessageOptionsList.innerHTML = '';
+            customMessages.forEach(message => {
+                const li = document.createElement('li');
+                li.classList.add('option');
+                li.dataset.type = 'custom-message';
+                li.dataset.value = message.name;
+                li.textContent = message.name;
+                if (message.name === currentCustomMessageName) {
+                    li.classList.add('selected');
+                }
+                customMessageOptionsList.appendChild(li);
+            });
+
+            layoutOptionsList.innerHTML = '';
+            noSignalLayouts.forEach(layout => {
+                const li = document.createElement('li');
+                li.classList.add('option');
+                li.dataset.type = 'layout';
+                li.dataset.value = layout.name;
+                li.textContent = layout.name;
+                if (layout.name === currentNoSignalLayoutName) {
+                    li.classList.add('selected');
+                }
+                layoutOptionsList.appendChild(li);
+            });
+
+            const editingToggleLi = editingOptionsList.querySelector('[data-type="editing-toggle"]');
+            if (editingToggleLi) {
+                const checkbox = editingToggleLi.querySelector('input[type="checkbox"]');
+                checkbox.checked = isEditAnythingEnabled;
+                if (isEditAnythingEnabled) {
+                    editingToggleLi.classList.add('selected');
+                } else {
+                    editingToggleLi.classList.remove('selected');
+                }
+            }
+
+            const fullscreenToggleLi = displayOptionsList.querySelector('[data-type="display-toggle"]');
+            if (fullscreenToggleLi) {
+                const checkbox = fullscreenToggleLi.querySelector('input[type="checkbox"]');
+                checkbox.checked = !!document.fullscreenElement;
+                if (!!document.fullscreenElement) {
+                    fullscreenToggleLi.classList.add('selected');
+                } else {
+                    fullscreenToggleLi.classList.remove('selected');
+                }
+            }
+
+            settingsSections = [];
+            const contentWrapper = document.querySelector('.settings-content-wrapper');
+            const sections = Array.from(contentWrapper.querySelectorAll('.settings-section'));
+
+            sections.forEach(sectionDiv => {
+                const optionsInThisSection = Array.from(sectionDiv.querySelectorAll('.option'));
+                if (optionsInThisSection.length > 0) {
+                    settingsSections.push(optionsInThisSection);
+                }
+            });
+
+            const actionButtons = Array.from(document.querySelector('.settings-actions').querySelectorAll('.option'));
+            if (actionButtons.length > 0) {
+                settingsSections.push(actionButtons);
+            }
+        }
+
+        function updateSelectableElements() {
+            selectableElements = Array.from(languageOptionsList.children)
+                               .concat(Array.from(versionOptionsList.children))
+                               .concat(Array.from(cursorOptionsList.children))
+                               .concat(Array.from(customMessageOptionsList.children))
+                               .concat(Array.from(layoutOptionsList.children)) 
+                               .concat(Array.from(editingOptionsList.children)) 
+                               .concat(Array.from(displayOptionsList.children)) 
+                               .concat([resetSettingsButton, closeSettingsButton]);
+            
+            selectableElements.forEach(el => {
+                el.classList.remove('focused');
+            });
+
+            if (focusedElementIndex >= 0 && focusedElementIndex < selectableElements.length) {
+                selectableElements[focusedElementIndex].classList.add('focused');
+            }
+        }
+
+        function handleSelection(element) {
+            const parentList = element.closest('.options-list');
+
+            if (element.dataset.type === 'editing-toggle') { 
+                const checkbox = element.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked; 
+                isEditAnythingEnabled = checkbox.checked;
+                
+                if (!isEditAnythingEnabled) { 
+                    h1_editable_content = null; 
+                    p_editable_content = null;  
+                }
+                updateMainNoSignalDisplay(); 
+                applyContentEditableState(); 
+                
+                if (isEditAnythingEnabled) {
+                    element.classList.add('selected');
+                } else {
+                    element.classList.remove('selected');
+                }
+            } else if (element.dataset.type === 'display-toggle') { 
+                const checkbox = element.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked;
+                toggleFullscreen(checkbox.checked);
+                if (checkbox.checked) {
+                    element.classList.add('selected');
+                } else {
+                    element.classList.remove('selected');
+                }
+            }
+            else if (parentList) {
+                Array.from(parentList.children).forEach(el => el.classList.remove('selected'));
+                element.classList.add('selected');
+
+                const type = element.dataset.type;
+                const value = element.dataset.value;
+
+                if (parentList.id === 'language-options') {
+                    currentLanguage = value;
+                    h1_editable_content = null;
+                    p_editable_content = null;
+                    updateMainNoSignalDisplay(); 
+                } else if (type === 'version') {
+                    currentNoSignalVersionName = value;
+                    currentCustomMessageName = null; 
+                    Array.from(customMessageOptionsList.children).forEach(el => el.classList.remove('selected'));
+                    h1_editable_content = null;
+                    p_editable_content = null;
+                    updateMainNoSignalDisplay();
+                } else if (type === 'cursor') {
+                    currentCursorStyleName = value;
+                    applyCursorVisual(); 
+                    resetCursorIdleTimeout(); 
+                } else if (type === 'custom-message') {
+                    currentCustomMessageName = value;
+                    currentNoSignalVersionName = null; 
+                    Array.from(versionOptionsList.children).forEach(el => el.classList.remove('selected'));
+                    h1_editable_content = null;
+                    p_editable_content = null;
+                    updateMainNoSignalDisplay();
+                } else if (type === 'layout') { 
+                    currentNoSignalLayoutName = value;
+                    updateMainNoSignalDisplay(); 
+                }
+            } else if (element.id === 'close-settings') {
+                closeSettings();
+            } else if (element.id === 'reset-settings') { 
+                resetToDefaults();
+            }
+            updateFocus(); 
+        }
+
+        function selectFocusedItem() {
+            if (focusedElementIndex === -1) return;
+            handleSelection(selectableElements[focusedElementIndex]);
+        }
+
+        function openSettings() {
+            isSettingsOpen = true;
+            settingsPanel.style.display = 'block';
+            hideHDMIOverlay(); // Hide HDMI overlay when settings open
+            populateSettingsOptions(); 
+            updateSelectableElements(); 
+
+            selectableElements.forEach((el, index) => {
+                if (el._clickHandler) {
+                    el.removeEventListener('click', el._clickHandler);
+                }
+
+                const clickHandler = () => {
+                    focusedElementIndex = index; 
+                    handleSelection(el);
+                };
+                el.addEventListener('click', clickHandler);
+                el._clickHandler = clickHandler; 
+            });
+
+            let initialFocusFound = false;
+            selectableElements.forEach((el, index) => {
+                if (!initialFocusFound && el.classList.contains('selected')) {
+                    focusedElementIndex = index;
+                    initialFocusFound = true;
+                }
+            });
+            if (!initialFocusFound && selectableElements.length > 0) { 
+                focusedElementIndex = 0;
+            } else if (selectableElements.length === 0) {
+                focusedElementIndex = -1; 
+            }
+
+            if (focusedElementIndex !== -1) {
+                const focusedElement = selectableElements[focusedElementIndex];
+                for (let i = 0; i < settingsSections.length; i++) {
+                    if (settingsSections[i].includes(focusedElement)) {
+                        currentSectionIndex = i;
+                        break;
+                    }
+                }
+            }
+            updateFocus();
+        }
+
+        function closeSettings() {
+            isSettingsOpen = false;
+            settingsPanel.style.display = 'none';
+            focusedElementIndex = -1; 
+            currentSectionIndex = -1; 
+            selectableElements.forEach(el => {
+                el.classList.remove('focused');
+                if (el._clickHandler) {
+                    el.removeEventListener('click', el._clickHandler);
+                    delete el._clickHandler;
+                }
+            });
+            applyCursorVisual(); 
+            resetCursorIdleTimeout(); 
+        }
+
+        function updateFocus() {
+            selectableElements.forEach((el, index) => {
+                el.classList.remove('focused');
+                if (index === focusedElementIndex) {
+                    el.classList.add('focused');
+                }
+            });
+            if (focusedElementIndex >= 0 && selectableElements[focusedElementIndex]) {
+                selectableElements[focusedElementIndex].scrollIntoView({ block: "nearest", inline: "nearest" });
+            }
+        }
+
+        function resetToDefaults() {
+            currentLanguage = initialDefaultState.language;
+            currentNoSignalVersionName = initialDefaultState.noSignalVersionName;
+            currentCursorStyleName = initialDefaultState.cursorStyleName;
+            currentCustomMessageName = initialDefaultState.customMessageName;
+            currentNoSignalLayoutName = initialDefaultState.noSignalLayoutName; 
+
+            isEditAnythingEnabled = false;
+            h1_editable_content = null;
+            p_editable_content = null;
+
+            if (document.fullscreenElement) { 
+                toggleFullscreen(false);
+            }
+
+            updateMainNoSignalDisplay(); 
+            applyCursorVisual(); 
+            resetCursorIdleTimeout(); 
+            populateSettingsOptions(); 
+            applyContentEditableState(); 
+            updateSelectableElements(); 
+            
+            let initialFocusFound = false;
+            selectableElements.forEach((el, index) => {
+                if (!initialFocusFound && el.classList.contains('selected')) {
+                    focusedElementIndex = index;
+                    initialFocusFound = true;
+                }
+            });
+            if (!initialFocusFound && selectableElements.length > 0) {
+                focusedElementIndex = 0;
+            } else if (selectableElements.length === 0) {
+                focusedElementIndex = -1; 
+            }
+
+            if (focusedElementIndex !== -1) {
+                const focusedElement = selectableElements[focusedElementIndex];
+                for (let i = 0; i < settingsSections.length; i++) {
+                    if (settingsSections[i].includes(focusedElement)) {
+                        currentSectionIndex = i;
+                        break;
+                    }
+                }
+            }
+            updateFocus();
+        }
+
+        hdmiOverlay.addEventListener('mousedown', (e) => {
+            e.stopPropagation(); 
+            if (isSettingsOpen) { 
+                return;
+            }
+            showHDMIOverlay(); 
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Backspace') {
+                if (isEditingText) { 
+                    return; 
+                }
+                if (!isSettingsOpen) {
+                    openSettings(); 
+                } else {
+                    closeSettings(); 
+                }
+                event.preventDefault(); 
+            } else if (event.key === 'Enter') { 
+                if (isEditingText) { 
+                    return; 
+                }
+                
+                if (isSettingsOpen) {
+                    selectFocusedItem(); 
+                } else {
+                    if (!isSettingsOpen && !isEditingText) { 
+                        if (hdmiOverlayIsActuallyVisible) {
+                            hideHDMIOverlay();
+                        } else {
+                            showHDMIOverlay();
+                        }
+                    }
+                }
+                event.preventDefault(); 
+            } else if (isSettingsOpen) { 
+                if (event.key === 'ArrowUp') {
+                    let currentInSectionIndex = -1;
+                    let sectionFound = false;
+                    for (let i = 0; i < settingsSections.length; i++) {
+                        const section = settingsSections[i];
+                        if (focusedElementIndex !== -1 && selectableElements[focusedElementIndex]) {
+                            currentInSectionIndex = section.indexOf(selectableElements[focusedElementIndex]);
+                        }
+                        if (currentInSectionIndex !== -1) {
+                            currentSectionIndex = i;
+                            sectionFound = true;
+                            break;
+                        }
+                    }
+
+                    if (sectionFound && settingsSections[currentSectionIndex].length > 0) {
+                        const currentSectionOptions = settingsSections[currentSectionIndex];
+                        const newInSectionIndex = (currentInSectionIndex - 1 + currentSectionOptions.length) % currentSectionOptions.length;
+                        focusedElementIndex = selectableElements.indexOf(currentSectionOptions[newInSectionIndex]);
+                    } else if (selectableElements.length > 0) { 
+                        focusedElementIndex = selectableElements.indexOf(settingsSections[0][settingsSections[0].length - 1]);
+                        currentSectionIndex = 0;
+                    }
+                    updateFocus();
+                    event.preventDefault();
+                } else if (event.key === 'ArrowDown') {
+                    let currentInSectionIndex = -1;
+                    let sectionFound = false;
+                    for (let i = 0; i < settingsSections.length; i++) {
+                        const section = settingsSections[i];
+                        if (focusedElementIndex !== -1 && selectableElements[focusedElementIndex]) {
+                             currentInSectionIndex = section.indexOf(selectableElements[focusedElementIndex]);
+                        }
+                        if (currentInSectionIndex !== -1) {
+                            currentSectionIndex = i;
+                            sectionFound = true;
+                            break;
+                        }
+                    }
+
+                    if (sectionFound && settingsSections[currentSectionIndex].length > 0) {
+                        const currentSectionOptions = settingsSections[currentSectionIndex];
+                        const newInSectionIndex = (currentInSectionIndex + 1) % currentSectionOptions.length;
+                        focusedElementIndex = selectableElements.indexOf(currentSectionOptions[newInSectionIndex]);
+                    } else if (selectableElements.length > 0) { 
+                        focusedElementIndex = selectableElements.indexOf(settingsSections[0][0]);
+                        currentSectionIndex = 0;
+                    }
+                    updateFocus();
+                    event.preventDefault();
+                } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { 
+                    let currentInSectionIndex = -1; 
+                    let sectionFound = false;
+                    for (let i = 0; i < settingsSections.length; i++) {
+                        const section = settingsSections[i];
+                        if (focusedElementIndex !== -1 && selectableElements[focusedElementIndex]) {
+                             currentInSectionIndex = section.indexOf(selectableElements[focusedElementIndex]);
+                        }
+                        if (currentInSectionIndex !== -1) {
+                            currentSectionIndex = i;
+                            sectionFound = true;
+                            break;
+                        }
+                    }
+
+                    if (sectionFound) {
+                        let newSectionIndex = currentSectionIndex;
+                        if (event.key === 'ArrowRight') {
+                            newSectionIndex = (currentSectionIndex + 1) % settingsSections.length;
+                        } else if (event.key === 'ArrowLeft') {
+                            newSectionIndex = (currentSectionIndex - 1 + settingsSections.length) % settingsSections.length;
+                        }
+
+                        const newSection = settingsSections[newSectionIndex];
+                        if (newSection.length > 0) { 
+                            let newFocusedElement = newSection[Math.min(currentInSectionIndex, newSection.length - 1)];
+                            if (!newFocusedElement) { 
+                                newFocusedElement = newSection[0];
+                            }
+                            
+                            focusedElementIndex = selectableElements.indexOf(newFocusedElement);
+                            currentSectionIndex = newSectionIndex; 
+                        }
+                    } else if (selectableElements.length > 0) { 
+                        focusedElementIndex = 0;
+                        currentSectionIndex = 0; 
+                    }
+                    updateFocus();
+                    event.preventDefault();
+                } else if (event.key === 'Escape') {
+                    closeSettings();
+                    event.preventDefault();
+                }
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = `${e.clientX}px`;
+            cursor.style.top = `${e.clientY}px`;
+
+            activateCursorOnInteraction(e);
+            lastMouseEventTime = Date.now();
+
+            if (isMouseCurrentlyDown) { 
+                if (!isDragInProgress) {
+                    const dx = e.clientX - mouseDownCoords.x;
+                    const dy = e.clientY - mouseDownCoords.y;
+                    if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) {
+                        isDragInProgress = true;
+                        hideHDMIOverlay();
+                    }
+                }
+            } else { 
+                if (!isSettingsOpen && !isEditingText) {
+                    showHDMIOverlay(); 
+                }
+            }
+
+            if (cursorAnimationPlaying === 'none' && !isMouseCurrentlyDown) {
+                const targetElement = document.elementFromPoint(e.clientX, e.clientY);
+                const newVisualState = (targetElement && targetElement.closest('.option, button')) ? 'hover' : 'idle';
+                if (cursorVisualState !== newVisualState) {
+                    cursorVisualState = newVisualState;
+                    applyCursorVisual();
+                }
+            }
+        });
+
+        document.addEventListener('mousedown', (e) => {
+            isMouseCurrentlyDown = true;
+            lastMouseEventTime = Date.now();
+            activateCursorOnInteraction(e);
+
+            mouseDownCoords = { x: e.clientX, y: e.clientY };
+            isDragInProgress = false; 
+
+            if (!isSettingsOpen && !isEditingText) {
+                showHDMIOverlay(); 
+            }
+
+            if (currentCursorStyleName === 'Beanbird') {
+                cursorAnimationPlaying = 'holding';
+            } else {
+                cursorVisualState = 'clicked';
+            }
+            applyCursorVisual();
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            isMouseCurrentlyDown = false;
+            lastMouseEventTime = Date.now();
+            activateCursorOnInteraction(e);
+
+            if (!isDragInProgress && !isSettingsOpen && !isEditingText) {
+                showHDMIOverlay(); 
+            } else if (isDragInProgress) {
+                hideHDMIOverlay();
+            }
+
+            isDragInProgress = false;
+
+            if (currentCursorStyleName === 'Beanbird') {
+                cursorAnimationPlaying = 'releasing';
+            } else {
+                const targetElement = document.elementFromPoint(e.clientX, e.clientY);
+                cursorVisualState = (targetElement && targetElement.closest('.option, button')) ? 'hover' : 'idle';
+            }
+            applyCursorVisual();
+        });
+
+        document.addEventListener('wheel', (e) => {
+            activateCursorOnInteraction(e);
+            lastMouseEventTime = Date.now();
+            if (!isSettingsOpen && !isEditingText) {
+                showHDMIOverlay(); 
+            }
+
+            const delta = e.deltaY;
+            if (delta > 0) {
+                cursorAnimationPlaying = 'scroll_down';
+            } else if (delta < 0) {
+                cursorAnimationPlaying = 'scroll_up';
+            }
+            applyCursorVisual();
+
+            animateScroll(delta > 0 ? 50 : -50);
+            resetScrollStopTimeout();
+            e.preventDefault();
+        });
+
+        function animateScroll(delta) {
+            isScrolling = true;
+            const targetPosition = Math.max(0, Math.min(scrollPosition + delta, scrollContainer.scrollHeight - window.innerHeight));
+
+            function step() {
+                if (Math.abs(scrollPosition - targetPosition) < 1 || !isScrolling) {
+                    scrollPosition = targetPosition;
+                    scrollContainer.style.transform = `translateY(-${scrollPosition}px)`;
+                    isScrolling = false;
+                    return;
+                }
+
+                scrollPosition += (targetPosition - scrollPosition) * 0.2; 
+                scrollContainer.style.transform = `translateY(-${scrollPosition}px)`;
+                requestAnimationFrame(step);
+            }
+
+            requestAnimationFrame(step);
+        }
+
+        function resetScrollStopTimeout() {
+            if (scrollStopTimeout) clearTimeout(scrollStopTimeout);
+
+            scrollStopTimeout = setTimeout(() => {
+                isScrolling = false; 
+                if (cursorAnimationPlaying === 'scroll_up' || cursorAnimationPlaying === 'scroll_down') {
+                    const targetElement = document.elementFromPoint(cursor.offsetLeft, cursor.offsetTop);
+                    cursorVisualState = (targetElement && targetElement.closest('.option, button')) ? 'hover' : 'idle';
+                    cursorAnimationPlaying = 'none'; 
+                    applyCursorVisual();
+                }
+            }, 100); 
+        }
+
+        updateMainNoSignalDisplay(); 
+        applyCursorVisual(); 
+        resetCursorIdleTimeout(); 
+        populateSettingsOptions(); 
+        applyContentEditableState(); 
+        hideHDMIOverlay(); 
     </script>
 </body>
 </html>
